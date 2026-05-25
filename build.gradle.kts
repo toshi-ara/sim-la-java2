@@ -172,14 +172,5 @@ tasks.register<Zip>("packageWindowsFull") {
     from(layout.buildDirectory.dir("jpackage/SimLocalAnesthetics")) {
         into(".")
     }
-
-    doFirst {
-        val startBat = file("${layout.buildDirectory.get()}/run.bat")
-        startBat.writeText("""
-            @echo off
-            start "" "%~dp0bin\SimLocalAnesthetics.exe"
-        """.trimIndent())
-    }
-    from(layout.buildDirectory.file("start.bat"))
 }
 
