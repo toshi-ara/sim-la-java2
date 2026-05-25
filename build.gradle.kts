@@ -164,22 +164,34 @@ tasks.register<Exec>("createJPackage") {
 }
 
 tasks.register<Zip>("packageWindowsFull") {
-    dependsOn("createJPackage")
+    dependsOn("createJLinkImage")
     archiveFileName.set("SimLA-Windows-WithJRE.zip")
     destinationDirectory.set(distDir)
 
-    // bin/SimLocalAnesthetics.exe, app/, runtime/
+    val outputDir = layout.buildDirectory.dir("jpackage").get().asFile
+
+    val javaHome = System.getProperty("java.home")
+    val jpackage = "$javaHome/bin/jpackage"
+
+
+    doFirst {
+        if (outputDir.exists()) outputDir.deleteRecursively()
+        outputDir.mkdirs()
+    }
+
+    commandLine(
+        jpackage,
+        "--name", "SimLocalAnesthetics",
+        "--input", layout.buildDirectory.dir("libs").get().asFile.absolutePath,
+        "--main-jar", "SimLocalAnesthetics-minified.jar",
+        "--main-class", "io.github.toshiara.simla.SimLocalAnesthetics",
+        "--runtime-image", jlinkDir.get().asFile.absolutePath,
+        "--dest", outputDir.absolutePath,
+        "--type", "app-image"
+    )
+
     from(layout.buildDirectory.dir("jpackage/SimLocalAnesthetics")) {
         into(".")
     }
-
-    doFirst {
-        val startBat = file("${layout.buildDirectory.get()}/run.bat")
-        startBat.writeText("""
-            @echo off
-            start "" "%~dp0bin\SimLocalAnesthetics.exe"
-        """.trimIndent())
-    }
-    from(layout.buildDirectory.file("start.bat"))
 }
 
